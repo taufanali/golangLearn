@@ -23,7 +23,7 @@ func main() {
 		})
 	})
 
-	http.HandleFunc("/api/category", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/api/categories", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(category)
@@ -44,8 +44,8 @@ func main() {
 			json.NewEncoder(w).Encode(categoryBaru)
 		} 
 	})
-	http.HandleFunc("/api/category/", func(w http.ResponseWriter, r *http.Request) {
-		idStr := r.URL.Path[len("/api/category/"):]
+	http.HandleFunc("/api/categories/", func(w http.ResponseWriter, r *http.Request) {
+		idStr := r.URL.Path[len("/api/categories/"):]
 		id, err := strconv.Atoi(idStr)
 		if err != nil {
 			http.Error(w, "Invalid ID", http.StatusBadRequest)
