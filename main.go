@@ -42,16 +42,38 @@ func main() {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusCreated)
 			json.NewEncoder(w).Encode(categoryBaru)
-		} else if r.Method == "PUT" {
-			idStr := r.URL.Query().Get("id")
-			id, err := strconv.Atoi(idStr)
-			if err != nil {
-				http.Error(w, "Invalid ID", http.StatusBadRequest)
-				return
-			}
+		} 
+	})
+	http.HandleFunc("/api/category/", func(w http.ResponseWriter, r *http.Request) {
+		idStr := r.URL.Path[len("/api/category/"):]
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			http.Error(w, "Invalid ID", http.StatusBadRequest)
+			return
+		}
 
+		if r.Method == "GET" {
+			for _, cat := range category {
+				if cat.ID == id {
+					w.Header().Set("Content-Type", "application/json")
+					json.NewEncoder(w).Encode(cat)
+					return
+				}
+			}
+			http.Error(w, "Category not found", http.StatusNotFound)
+
+		} else if r.Method == "DELETE" {
+			for i, cat := range category {
+				if cat.ID == id {
+					category = append(category[:i], category[i+1:]...)
+					w.WriteHeader(http.StatusNoContent)
+					return
+				}
+			}
+			http.Error(w, "Category not found", http.StatusNotFound)
+		} else if r.Method == "PUT" {
 			var updatedCategory Category
-			err = json.NewDecoder(r.Body).Decode(&updatedCategory)
+			err := json.NewDecoder(r.Body).Decode(&updatedCategory)
 			if err != nil {
 				http.Error(w, "Invalid request", http.StatusBadRequest)
 				return
@@ -59,39 +81,14 @@ func main() {
 
 			for i, cat := range category {
 				if cat.ID == id {
-					category[i].Name = updatedCategory.Name
-					category[i].Description = updatedCategory.Description
-
+					updatedCategory.ID = id
+					category[i] = updatedCategory
 					w.Header().Set("Content-Type", "application/json")
-					json.NewEncoder(w).Encode(category[i])
+					json.NewEncoder(w).Encode(updatedCategory)
 					return
 				}
 			}
-
 			http.Error(w, "Category not found", http.StatusNotFound)
-		} else if r.Method == "DELETE" {
-			idStr := r.URL.Query().Get("id")
-			id, err := strconv.Atoi(idStr)
-			if err != nil {
-				http.Error(w, "Invalid ID", http.StatusBadRequest)
-				return
-			}
-
-			for i, cat := range category {
-				if cat.ID == id {
-					category = append(category[:i], category[i+1:]...)
-
-					w.Header().Set("Content-Type", "application/json")
-					json.NewEncoder(w).Encode(map[string]string{
-						"message": "Category deleted",
-					})
-					return
-				}
-			}
-
-			http.Error(w, "Category not found", http.StatusNotFound)
-		} else {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	})
 
